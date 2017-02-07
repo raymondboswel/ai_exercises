@@ -11,6 +11,18 @@ class Node:
         self. action = action
         # self.path_cost = path_cost
         self.depth = depth
+    def __lt__(self, other):
+        selfAction = self.action
+        otherAction = other.action
+        if selfAction == "swap_right":
+            return True
+        if selfAction == "swap_left" and otherAction != "swap_right":
+            return True
+        if selfAction == "swap_down" and otherAction != "swap_up":
+            return False
+        if selfAction == "swap_up":
+            return False
+
 
 
 # Fringe -> empty queue
@@ -70,11 +82,11 @@ def get_path(node, path_to_goal):
         return path_to_goal
 
 def insert_all(successors, fringe):
-    astart = False
+    astar = True
     for successor in successors:
-        if (astar = True):
-            distance = manhattandistance.calculate(successor)
-            fringe.put((distance, successor))
+        if astar == True:
+            distance = manhattandistance.calculate(successor.state)
+            fringe.put(successor, distance)
         else:
             fringe.put(successor)
     return fringe
