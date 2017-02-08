@@ -1,6 +1,8 @@
 import queue
 import copy
 import manhattandistance
+import sys
+import math
 
 n = 3
 
@@ -26,7 +28,7 @@ class Node:
 
 
 # Fringe -> empty queue
-def tree_search(initial ,fringe):
+def tree_search(initial ,fringe, search_type):
     solutions = []
     initialNode = Node(initial, None, None, 0)
     found_solution = False
@@ -34,7 +36,7 @@ def tree_search(initial ,fringe):
     fringe = insert(initialNode, fringe) #Adds the initial node in the queue
     expanded_nodes = []
     branches_fully_explored = 0
-    while not fringe.empty() and x < 200000:
+    while not fringe.empty() and x < 20:
         x = x + 1
         print("\nIteration: {}".format(x))
         print('=====================================================================')
@@ -57,13 +59,14 @@ def tree_search(initial ,fringe):
         previous_states.append(node.state)
         successors = expand(node)
         expanded_nodes.append(node)
-        if not successors:
-            # No successors, delete expanded ancestors
-            branches_fully_explored = branches_fully_explored + 1
-            for node in expanded_nodes:
-                node = None
+        if search_type == "dfs":
+            if not successors:
+                # No successors, delete expanded ancestors
+                branches_fully_explored = branches_fully_explored + 1
+                for node in expanded_nodes:
+                    node = None
 
-        fringe = insert_all(successors, fringe)
+        fringe = insert_all(successors, fringe, search_type)
         print("Queue size: {}".format(fringe.qsize()))
     for node in solutions:
         print(get_path(node, []))
@@ -81,10 +84,9 @@ def get_path(node, path_to_goal):
         path_to_goal.reverse()
         return path_to_goal
 
-def insert_all(successors, fringe):
-    astar = True
+def insert_all(successors, fringe, search_type):
     for successor in successors:
-        if astar == True:
+        if search_type == "ast":
             distance = manhattandistance.calculate(successor.state)
             fringe.put(successor, distance)
         else:
@@ -241,12 +243,55 @@ def make_node(fringe):
     return fringe.get()
 
 
+def get_search_type():
+    search_type = sys.argv[1]
+    return search_type
+
+def get_puzzle_dimension(blocks):
+    total_blocks = len(blocks)
+    dim = math.sqrt(total_blocks)
+    return int(dim)
+
+def create_fringe(search_type):
+    if search_type == "dfs":
+        print("DFS")
+        fringe = queue.LifoQueue()
+    elif search_type == "bfs":
+        print("BFS")
+        fringe = queue.Queue()
+    else:
+        print("astar")
+        fringe == queue.PriorityQueue()
+    return fringe
+
+def create_initial_state(blocks, dimension):
+    initial_state = []
+    blocks.reverse()
+    for i in range(0, dimension):
+        print(i)
+        row = []
+        for i in range(0, dimension):
+            block = blocks.pop()
+            row.append(block)
+        initial_state.append(row)
+    return initial_state
+
+def get_blocks(raw_input):
+    return raw_input.split(",")
+
+
 initial = [[1,2,5],[3,4,0],[6,7,8]]
-n = 3
-# fringe = queue.Queue()
-# fringe = queue.LifoQueue()
-fringe = queue.PriorityQueue()
+blocks = get_blocks(sys.argv[2])
+
+n = get_puzzle_dimension(blocks)
+
+initial_state = create_initial_state(blocks, n)
 
 previous_states = []
-tree_search(initial, fringe)
+search_type = get_search_type()
+fringe = create_fringe(search_type)
+print(search_type)
+print(n)
+
+tree_search(initial, fringe, search_type)
 
